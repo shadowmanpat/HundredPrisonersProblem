@@ -5,7 +5,8 @@ import 'package:hundred_prisoners_problem/helper/random_array.dart';
 class PrisonerProblemResult{
   int survive;
   int total;
-  PrisonerProblemResult({required this.survive,required this.total});
+  List<int> prisonersFoundNumber;
+  PrisonerProblemResult({required this.survive,required this.total, required this.prisonersFoundNumber});
 
 
 }
@@ -19,52 +20,48 @@ class PrisonerProblem {
 
   Future<PrisonerProblemResult> startStrategy() async{
     List<bool> results = [];
+    List<int> prisonersFoundNumber = [];
     for (int prisoner = 0; prisoner < numberOfTest; prisoner++) {
       var result = _startStrategySingle();
-      results.add(result);
+      results.add(result.success);
+      prisonersFoundNumber.add(result.prisonersFoundNumber);
     }
     int survive = results.where((element) => element == true).length;
 
-    return PrisonerProblemResult(survive: survive, total: numberOfTest);
+    return PrisonerProblemResult(survive: survive, total: numberOfTest,prisonersFoundNumber: prisonersFoundNumber);
   }
   Future<PrisonerProblemResult> startRandom() async{
     List<bool> results = [];
+    List<int> prisonersFoundNumber = [];
     for (int prisoner = 0; prisoner < numberOfTest; prisoner++) {
       var result = _startRandomSingle();
-      results.add(result);
+      results.add(result.success);
+      prisonersFoundNumber.add(result.prisonersFoundNumber);
     }
     int survive = results.where((element) => element == true).length;
-    return PrisonerProblemResult(survive: survive, total: numberOfTest);
+    return PrisonerProblemResult(survive: survive, total: numberOfTest, prisonersFoundNumber: prisonersFoundNumber);
   }
 
-  bool _startRandomSingle(){
+  RoundResult _startRandomSingle(){
     List<bool> result = [];
     var randomArray = getRandomArray(numberOfPrisoners);
     for (int prisoner = 0; prisoner < numberOfPrisoners; prisoner++) {
       var pickedArray = _pickRandom(randomArray);
       result.add(pickedArray.contains(prisoner));
     }
-    if (result.contains(false)){
-      return false;
-    } else{
-      return true;
-    }
+    var prisonersFoundNumber = result.where((element) => element == true).length;
+    return RoundResult(prisonersFoundNumber, !result.contains(false));
   }
-  bool _startStrategySingle(){
+  RoundResult _startStrategySingle(){
     List<bool> result = [];
     var randomArray = getRandomArray(numberOfPrisoners);
     for (int prisoner = 0; prisoner < numberOfPrisoners; prisoner++) {
       var pickedArray = pickStrategy(prisoner,randomArray);
       result.add(pickedArray.contains(prisoner));
     }
-    if (result.contains(false)){
-      return false;
-    } else{
-      return true;
-    }
+    var prisonersFoundNumber = result.where((element) => element == true).length;
+    return RoundResult(prisonersFoundNumber,!result.contains(false));
   }
-
-
 
   List<int> pickStrategy(int prisoner,List<int> randomArray){
 
@@ -87,6 +84,12 @@ class PrisonerProblem {
     }
     return pickedArray;
   }
+}
+class RoundResult {
+  final int prisonersFoundNumber;
+  final bool success;
+
+  RoundResult(this.prisonersFoundNumber, this.success);
 }
 
 

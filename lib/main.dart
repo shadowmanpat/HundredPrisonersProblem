@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hundred_prisoners_problem/classes/prisoner_problem.dart';
+import 'package:hundred_prisoners_problem/widgets/chart_widget.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 void main() {
   runApp(const MyApp());
@@ -21,14 +23,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'The 100 Prisoners Problem'),
@@ -38,15 +32,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -58,6 +43,29 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   int numberOfTests = 100;
   int numberOfPrisoners = 100;
+  bool calculating = false;
+  int successRandom = 0;
+  int totalRandom = 0;
+  int successStrategy= 0;
+  int totalStrategy = 0;
+  String lastRun = "";
+  int lastSuccess=0;
+  int lastTotal= 0;
+  List<int> countOfPrisonersFoundNumberRandom = [];
+  List<int> countOfPrisonersFoundNumberStrategy =[];
+
+  resetState(){
+    successRandom = 0;
+     totalRandom = 0;
+     successStrategy= 0;
+     totalStrategy = 0;
+     lastRun = "";
+     lastSuccess=0;
+     lastTotal= 0;
+    countOfPrisonersFoundNumberRandom = List.filled(numberOfPrisoners, 0);
+    countOfPrisonersFoundNumberStrategy = List.filled(numberOfPrisoners, 0);
+  }
+
   late TextEditingController prisonerController;
   late TextEditingController testsController;
 
@@ -80,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
           prisonerController.text = "0";
           numberOfPrisoners = 0;
         }
-
+        resetState();
         setState(() {});
       });
     testsController = TextEditingController(text: "$numberOfTests")
@@ -91,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           testsController.text = "0";
           numberOfTests = 0;
         }
+        resetState();
         setState(() {});
       });
 
@@ -163,6 +172,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(height: 20,),
                 calculating ? const Text("Calculating..."): Container(),
+                lastRun.isEmpty? Container(): Text("Last Run $lastRun, Survived $lastSuccess out of $lastTotal runs"),
+                const SizedBox(height: 20,),
                 Row(
                   children: [
                    Column(
@@ -181,7 +192,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     )
                   ],
-                )
+                ),
+                Container(
+                    width: 700,
+                    height: 400,
+                    child: InitialSelection(randomSeriesList: countOfPrisonersFoundNumberRandom, animate: true, strategySeriesList: countOfPrisonersFoundNumberStrategy,))
               ],
             ),
           ],
@@ -190,12 +205,6 @@ class _MyHomePageState extends State<MyHomePage> {
      );
   }
 
-
-  bool calculating = false;
-  int successRandom = 0;
-  int totalRandom = 0;
-  int successStrategy= 0;
-  int totalStrategy = 0;
 
   Future<void> startRandom() async {
     if (numberOfTests == 0 || numberOfPrisoners == 0){
@@ -220,14 +229,19 @@ class _MyHomePageState extends State<MyHomePage> {
     Timer(const Duration(seconds: 1), () async {
       var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startRandom();
       print("result random ${result.survive} ${result.total}");
-
+      (result.prisonersFoundNumber);
       setState(() {
+        lastRun = "Random";
+        lastSuccess = result.survive;
+        lastTotal = result.total;
         successRandom = successRandom +result.survive;
         totalRandom= totalRandom +result.total;
         calculating = false;
       });
     });
   }
+
+
 
   Future<void> startStrategy() async {
     if (numberOfTests == 0 || numberOfPrisoners == 0){
@@ -251,6 +265,10 @@ class _MyHomePageState extends State<MyHomePage> {
       var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startStrategy();
       print("result strategy ${result.survive} ${result.total}");
       setState(() {
+        lastRun = "Strategy";
+        lastSuccess = result.survive;
+        lastTotal = result.total;
+
         successStrategy = successStrategy +result.survive;
         totalStrategy = totalStrategy +result.total;
         calculating = false;
@@ -265,4 +283,19 @@ class _MyHomePageState extends State<MyHomePage> {
     testsController.dispose();
     super.dispose();
   }
+
+  setRandomDataForChart(List<int> prisonersFoundNumber){
+    prisonersFoundNumber.forEach((element) {
+      countOfPrisonersFoundNumberRandom[element] = countOfPrisonersFoundNumberRandom[element] +1;
+    });
+  }
+  setStrategyDataForChart(List<int> prisonersFoundNumber){
+    prisonersFoundNumber.forEach((element) {
+      countOfPrisonersFoundNumberStrategy[element] = countOfPrisonersFoundNumberStrategy[element] +1;
+    });
+  }
+
 }
+
+
+
