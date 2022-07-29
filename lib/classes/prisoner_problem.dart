@@ -3,50 +3,52 @@ import 'dart:math';
 import 'package:hundred_prisoners_problem/helper/random_array.dart';
 
 class PrisonerProblem {
-  var randomArray = getRandomArray();
-
-
   PrisonerProblem(){
     // startRandom(randomArray);
-    startStrategy(randomArray);
+    // startStrategy(randomArray);
     // pickStrategy(0, randomArray);
-    // for (int prisoner = 0; prisoner < 1000; prisoner++) {
-    //   startRandom(randomArray);
-    // }
+
+    List<bool> results = [];
+    for (int prisoner = 0; prisoner < 1000; prisoner++) {
+      var result = startStrategy();
+      results.add(result);
+    }
+    int survive = results.where((element) => element == true).length;
+    int die = results.where((element) => element == false).length;
+    print("survive $survive die $die");
   }
 
-  bool startRandom(List<int> randomArray){
+  bool startRandom(){
     List<bool> result = [];
+    var randomArray = getRandomArray();
     for (int prisoner = 0; prisoner < prisoners; prisoner++) {
       var pickedArray = pickRandom(randomArray);
       result.add(pickedArray.contains(prisoner));
     }
     if (result.contains(false)){
-      print("die");
-      return true;
-    } else{
-      print("survive");
       return false;
+    } else{
+      return true;
     }
   }
-  bool startStrategy(List<int> randomArray){
+  bool startStrategy(){
     List<bool> result = [];
+    var randomArray = getRandomArray();
     for (int prisoner = 0; prisoner < prisoners; prisoner++) {
       var pickedArray = pickStrategy(prisoner,randomArray);
       result.add(pickedArray.contains(prisoner));
     }
     if (result.contains(false)){
-      print("die");
-      return true;
-    } else{
-      print("survive");
       return false;
+    } else{
+      return true;
     }
   }
 
 
 
   List<int> pickStrategy(int prisoner,List<int> randomArray){
+
     List<int> pickedArray = [];
     var itemToPick = prisoner;
     for (int pick = 0; pick < tries; pick++) {
