@@ -194,10 +194,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     )
                   ],
                 ),
-                Container(
+                lastRun.isNotEmpty ? Container(
                     width: 700,
                     height: 400,
-                    child: InitialSelection(randomSeriesList: countOfPrisonersFoundNumberRandom, animate: true, strategySeriesList: countOfPrisonersFoundNumberStrategy,))
+                    child: InitialSelection(randomSeriesList: countOfPrisonersFoundNumberRandom, animate: true, strategySeriesList: countOfPrisonersFoundNumberStrategy,)) : Container()
               ],
             ),
           ],
@@ -229,7 +229,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     Timer(const Duration(seconds: 1), () async {
       var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startRandom();
-      print("result random ${result.survive} ${result.total}");
       (result.prisonersFoundNumber);
       setState(() {
         lastRun = "Random";
@@ -265,7 +264,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     Timer(const Duration(seconds: 1), () async {
       var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startStrategy();
-      print("result strategy ${result.survive} ${result.total}");
       setState(() {
         lastRun = "Strategy";
         lastSuccess = result.survive;
@@ -292,7 +290,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
   setStrategyDataForChart(List<int> prisonersFoundNumber){
-    print("prisonersFoundNumber $prisonersFoundNumber");
     prisonersFoundNumber.forEach((element) {
       countOfPrisonersFoundNumberStrategy[element] = countOfPrisonersFoundNumberStrategy[element] +1;
     });
