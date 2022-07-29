@@ -46,7 +46,7 @@ class InitialSelection extends StatelessWidget {
         // [DomainHighlighter]. So this behavior shows the initial selection
         // highlighted and when another datum is tapped, the selection changes.
         new charts.InitialSelection(selectedDataConfig: [
-          new charts.SeriesDatumConfig<String>('Sales', '2016')
+          new charts.SeriesDatumConfig<String>('Propabiliy', '# prisoners who found their number')
         ])
       ],
     );
@@ -57,10 +57,10 @@ class InitialSelection extends StatelessWidget {
     List<OrdinalSales> strategyList = [];
     List<OrdinalSales> randomList = [];
     for (int position = 0; position < strategySeriesList.length; position++) {
-     strategyList.add(OrdinalSales("$position", strategySeriesList![position]));
+     strategyList.add(OrdinalSales("$position", strategySeriesList[position]));
     }
     for (int position = 0; position < randomSeriesList.length; position++) {
-      randomList.add(OrdinalSales("$position", randomSeriesList![position]));
+      randomList.add(OrdinalSales("$position", randomSeriesList[position]));
     }
 
     var strategyChartItems = new charts.Series<OrdinalSales, String>(

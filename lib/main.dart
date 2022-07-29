@@ -62,8 +62,8 @@ class _MyHomePageState extends State<MyHomePage> {
      lastRun = "";
      lastSuccess=0;
      lastTotal= 0;
-    countOfPrisonersFoundNumberRandom = List.filled(numberOfPrisoners, 0);
-    countOfPrisonersFoundNumberStrategy = List.filled(numberOfPrisoners, 0);
+    countOfPrisonersFoundNumberRandom = List.filled(numberOfPrisoners+1, 0);
+    countOfPrisonersFoundNumberStrategy = List.filled(numberOfPrisoners+1, 0);
   }
 
   late TextEditingController prisonerController;
@@ -80,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
   );
   @override
   void initState() {
+    resetState();
     prisonerController = TextEditingController(text: "$numberOfPrisoners")
       ..addListener(() {
         try{
@@ -234,6 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
         lastRun = "Random";
         lastSuccess = result.survive;
         lastTotal = result.total;
+        setRandomDataForChart(result.prisonersFoundNumber);
         successRandom = successRandom +result.survive;
         totalRandom= totalRandom +result.total;
         calculating = false;
@@ -268,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
         lastRun = "Strategy";
         lastSuccess = result.survive;
         lastTotal = result.total;
-
+        setStrategyDataForChart(result.prisonersFoundNumber);
         successStrategy = successStrategy +result.survive;
         totalStrategy = totalStrategy +result.total;
         calculating = false;
@@ -290,6 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
   setStrategyDataForChart(List<int> prisonersFoundNumber){
+    print("prisonersFoundNumber $prisonersFoundNumber");
     prisonersFoundNumber.forEach((element) {
       countOfPrisonersFoundNumberStrategy[element] = countOfPrisonersFoundNumberStrategy[element] +1;
     });
