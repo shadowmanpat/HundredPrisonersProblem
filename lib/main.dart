@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hundred_prisoners_problem/classes/prisoner_problem.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -50,70 +56,213 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int numberOfTests = 100;
+  int numberOfPrisoners = 100;
+  late TextEditingController prisonerController;
+  late TextEditingController testsController;
 
-  void _incrementCounter() {
-    PrisonerProblem();
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+
+  YoutubePlayerController _controller = YoutubePlayerController(
+    initialVideoId: 'iSNsgj1OCLA',
+    params: const YoutubePlayerParams(
+      // playlist: ['nPt8bK2gbaU', 'gQDByCdjUXw'], // Defining custom playlist
+      showControls: true,
+      showFullscreenButton: true,
+    ),
+  );
+  @override
+  void initState() {
+    prisonerController = TextEditingController(text: "$numberOfPrisoners")
+      ..addListener(() {
+        try{
+          numberOfPrisoners = int.parse(prisonerController.value.text);
+        }catch(e){
+          prisonerController.text = "0";
+          numberOfPrisoners = 0;
+        }
+
+        setState(() {});
+      });
+    testsController = TextEditingController(text: "$numberOfTests")
+      ..addListener(() {
+        try{
+          numberOfTests = int.parse(testsController.value.text);
+        }catch(e){
+          testsController.text = "0";
+          numberOfTests = 0;
+        }
+        setState(() {});
+      });
+
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: SingleChildScrollView(
-          child: Column(
-            // Column is also a layout widget. It takes a list of children and
-            // arranges them vertically. By default, it sizes itself to fit its
-            // children horizontally, and tries to be as tall as its parent.
-            //
-            // Invoke "debug painting" (press "p" in the console, choose the
-            // "Toggle Debug Paint" action from the Flutter Inspector in Android
-            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-            // to see the wireframe for each widget.
-            //
-            // Column has various properties to control how it sizes itself and
-            // how it positions its children. Here we use mainAxisAlignment to
-            // center the children vertically; the main axis here is the vertical
-            // axis because Columns are vertical (the cross axis would be
-            // horizontal).
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'You have pushed the button this many times:',
-              ),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headline4,
-              ),
-            ],
-          ),
+      body: SingleChildScrollView(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 600,
+                  child: YoutubePlayerIFrame(
+                    controller: _controller,
+                    aspectRatio: 16 / 9,
+                  ),
+                ),
+                Container(
+                  width: 200,
+                  child: TextField(
+                    controller: prisonerController,
+                    decoration: const InputDecoration(labelText: "Number of Prisoners"),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                    ], // Only numbers can be entered
+                  ),
+                ),
+                const SizedBox(height: 20,),
+                Container(
+                  width: 200,
+                  child: TextField(
+                    controller: testsController,
+                    decoration: const InputDecoration(labelText: "Number of tests"),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                    ], // Only numbers can be entered
+                  ),
+                ),
+                const SizedBox(height: 20,),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: calculating ? null : startRandom,
+                      child: const Text('Run Random'),
+                    ),
+                     const SizedBox(width: 20,),
+                     ElevatedButton(
+                      onPressed:  calculating ? null : startStrategy,
+                      child: const Text('Run Strategy'),
+
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20,),
+                calculating ? const Text("Calculating..."): Container(),
+                Row(
+                  children: [
+                   Column(
+                     children: [
+                       Text("Possibility to survive: ${successRandom/totalRandom}"),
+                       Text("Survived: $successRandom"),
+                       Text("Tests: $totalRandom")
+                     ],
+                   ),
+                    const SizedBox(width: 20,),
+                    Column(
+                      children: [
+                        Text("Possibility to survive: ${successStrategy/totalStrategy}"),
+                        Text("Survived: $successStrategy"),
+                        Text("Tests: $totalStrategy")
+                      ],
+                    )
+                  ],
+                )
+              ],
+            ),
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+     );
+  }
+
+
+  bool calculating = false;
+  int successRandom = 0;
+  int totalRandom = 0;
+  int successStrategy= 0;
+  int totalStrategy = 0;
+
+  Future<void> startRandom() async {
+    if (numberOfTests == 0 || numberOfPrisoners == 0){
+      Fluttertoast.showToast(
+          msg: "Please number of prisoners or number of tests",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          webBgColor : "#ff0000",
+          webPosition: "center",
+          fontSize: 16.0
+      );
+      return;
+    }
+
+    setState(() {
+      calculating = true;
+    });
+
+    Timer(const Duration(seconds: 1), () async {
+      var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startRandom();
+      print("result random ${result.survive} ${result.total}");
+
+      setState(() {
+        successRandom = successRandom +result.survive;
+        totalRandom= totalRandom +result.total;
+        calculating = false;
+      });
+    });
+  }
+
+  Future<void> startStrategy() async {
+    if (numberOfTests == 0 || numberOfPrisoners == 0){
+      Fluttertoast.showToast(
+          msg: "Please number of prisoners or number of tests",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          webBgColor : "#ff0000",
+          webPosition: "center",
+          fontSize: 16.0
+      );
+      return;
+    }
+    setState(() {
+      calculating = true;
+    });
+    Timer(const Duration(seconds: 1), () async {
+      var result = await PrisonerProblem(numberOfPrisoners: numberOfPrisoners, numberOfTest: numberOfTests ).startStrategy();
+      print("result strategy ${result.survive} ${result.total}");
+      setState(() {
+        successStrategy = successStrategy +result.survive;
+        totalStrategy = totalStrategy +result.total;
+        calculating = false;
+      });
+    });
+
+  }
+
+  @override
+  void dispose() {
+    prisonerController.dispose();
+    testsController.dispose();
+    super.dispose();
   }
 }
